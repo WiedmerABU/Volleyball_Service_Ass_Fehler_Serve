@@ -37,7 +37,7 @@
   if(typeof m.team!=='string'||typeof m.opponent!=='string'||typeof m.date!=='string'||!m.team.trim()||!m.opponent.trim()||m.team.length>80||m.opponent.length>80||!/^\d{4}-\d{2}-\d{2}$/.test(m.date))throw Error('Ungültige Matchangaben.');
   if(m.roster.some(p=>!p||typeof p.id!=='string'||typeof p.name!=='string'||!p.name.trim()||p.name.length>60||!Number.isInteger(p.number)||p.number<0||p.number>99)||new Set(m.roster.map(p=>p.id)).size!==m.roster.length||new Set(m.roster.map(p=>p.number)).size!==m.roster.length)throw Error('Prüfe Namen und eindeutige Nummern (0–99).');
   if(!Number.isInteger(m.current)||m.current<0||(m.sets.length?m.current>=m.sets.length:m.current!==0))throw Error('Ungültiger aktueller Satz.');
-  for(const s of m.sets){if(!s||!Array.isArray(s.start)||!Array.isArray(s.events)||s.events.length>10000||typeof s.closed!=='boolean')throw Error('Ungültiger Satz.');if(s.events.some(e=>!e||typeof e.id!=='string'||!e.id||typeof e.time!=='string'||!Number.isFinite(Date.parse(e.time)))||new Set(s.events.map(e=>e.id)).size!==s.events.length)throw Error('Ungültige oder doppelte Ereignisse.');replay(s,m.roster);}
+  for(const s of m.sets){if(!s||!Array.isArray(s.start)||!Array.isArray(s.events)||s.events.length>10000||typeof s.closed!=='boolean')throw Error('Ungültiger Satz.');if(s.events.some(e=>!e||typeof e.id!=='string'||!e.id||typeof e.time!=='string'||!Number.isFinite(Date.parse(e.time)))||new Set(s.events.map(e=>e.id)).size!==s.events.length)throw Error('Ungültige oder doppelte Ereignisse.');for(const e of s.events){if(e.awaitPoint!==undefined&&typeof e.awaitPoint!=='boolean')throw Error('Ungültiger Ballwechselstatus.');if(e.service!==undefined&&typeof e.service!=='string')throw Error('Ungültige Servicezuordnung.');}replay(s,m.roster);}
   return m;
  }
  function stats(m,index=null,filter='Alle'){
@@ -48,9 +48,16 @@
  }
  function summarize(rows){return rows.reduce((a,p)=>({total:a.total+p.total,ace:a.ace+p.ace,error:a.error+p.error,regular:a.regular+p.regular}),{total:0,ace:0,error:0,regular:0});}
  function pct(n,d){return d ? Math.round(n/d*1000)/10 : 0;}
- function setWinner(score,index){const target=index===4?15:25;return Math.max(...score)>=target&&Math.abs(score[0]-score[1])>=2?(score[0]>score[1]?0:1):null;}
+ function setWinner(score,index){return Math.max(...score)>=25&&Math.abs(score[0]-score[1])>=2?(score[0]>score[1]?0:1):null;}
  function matchResult(m,includeOpen=false){const wins=[0,0];for(let i=0;i<m.sets.length;i++){const s=m.sets[i];if(!s.closed&&!includeOpen)continue;const winner=setWinner(replay(s,m.roster).score,i);if(winner!==null)wins[winner]++;if(wins.some(n=>n===3))return {wins,winner:wins[0]===3?0:1,decidingSet:i};}return {wins,winner:null,decidingSet:null};}
+ function pendingRally(m){
+  for(let index=0;index<m.sets.length;index++){
+   const events=m.sets[index].events;
+   for(let i=0;i<events.length;i++){const e=events[i];if(e.kind==='serve'&&e.result==='regular'&&e.awaitPoint===true&&!events.slice(i+1).some(p=>p.kind==='point'&&p.service===e.id))return {index,event:e};}
+  }
+  return null;
+ }
  function undoPlayerService(m,index,player){const events=m.sets[index].events;let at=-1;for(let i=events.length-1;i>=0;i--)if(events[i].kind==='serve'&&events[i].player===player){at=i;break;}if(at<0)throw Error('Für diese Spielerin gibt es in diesem Satz keinen Service zum Zurücknehmen.');events.splice(at,1);}
- const api={clone,uid,phase,newMatch,replay,validate,stats,summarize,pct,validScore,setWinner,matchResult,undoPlayerService};
+ const api={clone,uid,phase,newMatch,replay,validate,stats,summarize,pct,validScore,setWinner,matchResult,pendingRally,undoPlayerService};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VBC=api;
 })(typeof window!=='undefined'?window:globalThis);
