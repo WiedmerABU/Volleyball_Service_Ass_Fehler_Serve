@@ -19,3 +19,6 @@
 
 /* Version 1.6: Auswahl der nächsten Aufschlägerin nach einem gegnerischen Punkt. */
 .selection-overview .focus-rail{gap:16px}.selection-overview .focus-pair{gap:14px}.selection-overview .focus-choice{min-height:140px;padding:24px;grid-template-columns:64px minmax(0,1fr);gap:16px;border-radius:16px}.selection-overview .focus-choice strong{font-size:44px;color:var(--blue)}.selection-overview .focus-choice span{font-size:22px}.selection-overview .focus-choice:hover{background:var(--light);border-color:var(--blue)}@media(max-width:700px){.selection-overview .focus-rail{gap:8px}.selection-overview .focus-pair{gap:8px}.selection-overview .focus-choice{grid-template-columns:1fr;min-height:108px;padding:12px 7px;text-align:center;gap:6px}.selection-overview .focus-choice strong{font-size:30px;grid-row:auto}.selection-overview .focus-choice span{font-size:14px}}
+
+/* Version 1.7: Gegner serviert, Punkteerfassung mit klarer Freigabe. */
+.point-button.opponent-active{background:#b5273c;color:white;border:1px solid #b5273c}.active-label{display:inline-block;font-size:10px;border:1px solid #ffffff90;border-radius:4px;padding:1px 4px;margin-left:5px}.selection-overview .focus-choice[aria-disabled=true]{opacity:.55;cursor:not-allowed}.selection-overview .focus-choice[aria-disabled=true]:hover{background:var(--card);border-color:var(--line)}
